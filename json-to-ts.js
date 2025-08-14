@@ -139,6 +139,7 @@ Exemplos:
   let inputFile = null;
   let outputFile = null;
   let jsonString = null;
+  let inputArgs = [];
 
   // Parse dos argumentos
   for (let i = 0; i < args.length; i++) {
@@ -162,12 +163,46 @@ Exemplos:
         break;
       default:
         if (!arg.startsWith("--")) {
-          if (fs.existsSync(arg)) {
-            inputFile = arg;
-          } else {
-            jsonString = arg;
-          }
+          inputArgs.push(arg);
         }
+    }
+  }
+
+  // Processar argumentos de input
+  for (const inputArg of inputArgs) {
+    if (fs.existsSync(inputArg)) {
+      inputFile = inputArg;
+      console.log(`📁 Arquivo encontrado: ${inputArg}`);
+      break;
+    } else if (inputArg.startsWith("{") || inputArg.startsWith("[")) {
+      jsonString = inputArg;
+      console.log(`📝 JSON string detectado`);
+      break;
+    }
+  }
+
+  // Se não encontrou arquivo nem JSON, tenta o último argumento como arquivo
+  if (!inputFile && !jsonString && inputArgs.length > 0) {
+    const lastArg = inputArgs[inputArgs.length - 1];
+    console.log(`🔍 Tentando arquivo: ${lastArg}`);
+
+    if (fs.existsSync(lastArg)) {
+      inputFile = lastArg;
+    } else {
+      console.error(`❌ Arquivo não encontrado: ${lastArg}`);
+      console.log(
+        "💡 Certifique-se de que o arquivo existe no diretório atual"
+      );
+      console.log(`📍 Diretório atual: ${process.cwd()}`);
+      console.log(
+        `📂 Arquivos disponíveis: ${
+          fs
+            .readdirSync(".")
+            .filter((f) => f.endsWith(".json"))
+            .join(", ") || "nenhum .json"
+        }`
+      );
+      process.exit(1);
     }
   }
 
@@ -177,13 +212,17 @@ Exemplos:
 
     // Lê o input
     if (inputFile) {
+      console.log(`📖 Lendo arquivo: ${inputFile}`);
       const content = fs.readFileSync(inputFile, "utf8");
       jsonData = content;
     } else if (jsonString) {
+      console.log(`🔄 Processando JSON string`);
       jsonData = jsonString;
     } else {
-      throw new Error("Nenhum input fornecido");
+      throw new Error("Nenhum input fornecido. Use --help para ver exemplos.");
     }
+
+    console.log(`🔧 Convertendo com opções: ${JSON.stringify(options)}`);
 
     // Converte
     const result = converter.convert(jsonData);
@@ -192,11 +231,24 @@ Exemplos:
     if (outputFile) {
       fs.writeFileSync(outputFile, result);
       console.log(`✅ Tipos TypeScript gerados em: ${outputFile}`);
+      console.log(`📏 Tamanho do arquivo: ${result.length} caracteres`);
     } else {
+      console.log("\n" + "=".repeat(50));
+      console.log("📋 RESULTADO TYPESCRIPT:");
+      console.log("=".repeat(50));
       console.log(result);
+      console.log("=".repeat(50));
     }
   } catch (error) {
     console.error(`❌ Erro: ${error.message}`);
+
+    if (error.message.includes("JSON inválido")) {
+      console.log("💡 Dicas para corrigir JSON:");
+      console.log("  - Verifique se todas as chaves estão entre aspas duplas");
+      console.log("  - Certifique-se de que não há vírgulas extras");
+      console.log("  - Use aspas duplas (\") ao invés de aspas simples (')");
+    }
+
     process.exit(1);
   }
 }
