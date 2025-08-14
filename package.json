@@ -1,0 +1,27 @@
+{
+  "name": "json2ts",
+  "version": "1.0.0",
+  "description": "Conversor de JSON para TypeScript que gera interfaces ou types",
+  "main": "json-to-ts.js",
+  "bin": {
+    "json2ts": "./json-to-ts.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node json-to-ts.js"
+  },
+  "keywords": [
+    "json",
+    "typescript",
+    "converter",
+    "interface",
+    "types",
+    "cli"
+  ],
+  "author": "",
+  "license": "MIT",
+  "engines": {
+    "node": ">=12.0.0"
+  },
+  "preferGlobal": true
+}
